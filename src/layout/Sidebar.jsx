@@ -34,7 +34,6 @@ function Sidebar() {
       </>
     )}
 
-    {user.role === "student" && <p>Student Tools</p>}
   </aside>
 );
 }

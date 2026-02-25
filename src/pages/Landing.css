@@ -1,0 +1,159 @@
+.landing-wrapper {
+  overflow-x: hidden;
+}
+
+/* HERO */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6rem 8%;
+  min-height: 90vh;
+  color: white;
+}
+
+.hero-content {
+  max-width: 600px;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.8s ease forwards;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.95;
+  margin-bottom: 2rem;
+  animation: fadeUp 1.2s ease forwards;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.primary-btn,
+.secondary-btn {
+  text-decoration: none;
+  padding: 0.9rem 1.6rem;
+  border-radius: 14px;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(90deg, #4f46e5, #06b6d4);
+  color: white;
+}
+
+.primary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.secondary-btn {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(8px);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.secondary-btn:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+.large {
+  padding: 1.1rem 2rem;
+  font-size: 1rem;
+}
+
+/* Floating cards */
+.hero-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.floating-card {
+  background: white;
+  color: #0f172a;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  animation: float 4s ease-in-out infinite;
+}
+
+.floating-card:nth-child(2) {
+  animation-delay: 1s;
+}
+.floating-card:nth-child(3) {
+  animation-delay: 2s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* FEATURES */
+.features {
+  padding: 5rem 8%;
+  background: #f8fafc;
+}
+
+.alt-section {
+  background: #eef2ff;
+}
+
+.features h2 {
+  text-align: center;
+  margin-bottom: 3rem;
+  font-size: 2rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transition: 0.25s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
+
+/* FINAL CTA */
+.final-cta {
+  padding: 5rem 8%;
+  text-align: center;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  color: white;
+}
+
+.final-cta h2 {
+  margin-bottom: 2rem;
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
