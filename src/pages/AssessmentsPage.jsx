@@ -16,7 +16,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcEleme
 const uid = () => Math.random().toString(36).slice(2, 10);
 
 export default function AssessmentsPage() {
-  // Demo data (Deliverable 1 allows hard-coded)
+
   const [assessments, setAssessments] = useState([
     {
       id: uid(),

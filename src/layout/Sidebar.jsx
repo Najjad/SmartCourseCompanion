@@ -10,11 +10,18 @@ function Sidebar() {
 
   return (
   <aside className="sidebar">
-    <Link to="/dashboard">Dashboard</Link>
-    <br />
 
-    <Link to="/assessments">Assessments</Link>
-    <br />
+      {user.role === "student" && (
+      <>
+        <p><strong>Student Panel</strong></p>
+
+        <Link to="/dashboard">Dashboard</Link>
+        <br />
+
+        <Link to="/assessments">Assessments</Link>
+        <br />
+      </>
+    )}
 
     {user.role === "admin" && (
       <>
