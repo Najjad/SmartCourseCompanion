@@ -13,7 +13,7 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <h2>Flight Toolkit</h2>
+      <h2>Smart Course Companion</h2>
 
       {user ? (
         <div>
