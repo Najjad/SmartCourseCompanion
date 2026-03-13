@@ -58,16 +58,15 @@ function CoursesPage() {
         />
       </div>
 
-      {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCourses.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            onClick={() => navigate(`/student/courses/${course.id}`)}
-          />
-        ))}
-      </div>
+  {filteredCourses.map((course) => (
+    <CourseCard
+      key={course.id}
+      course={course}
+      onClick={() => navigate(`/courses/${course.id}`)}
+    />
+  ))}
+</div>
 
       {filteredCourses.length === 0 && (
         <div className="text-center py-12">
