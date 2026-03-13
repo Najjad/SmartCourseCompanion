@@ -17,6 +17,9 @@ function Sidebar() {
 
         <Link to="/dashboard">Dashboard</Link>
         <br />
+        
+        <Link to="/courses">Courses</Link>
+        <br />
 
         <Link to="/assessments">Assessments</Link>
         <br />
