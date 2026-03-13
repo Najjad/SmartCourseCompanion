@@ -10,6 +10,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import Templates from "./pages/Templates";
 import UsageStats from "./pages/UsageStats";
+import CoursesPage from "./pages/CoursesPage";
+import CourseDetailPage from "./pages/CourseDetailPage";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
             <Route path="/admin/stats" element={<UsageStats />} />
             <Route path="/assessments" element={<AssessmentsPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
