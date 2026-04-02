@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
 const express = require("express");
 const cors = require("cors");
@@ -8,11 +8,18 @@ const bcrypt = require("bcrypt");
 const usersRoute = require("./routes/users");
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 
 app.use(cors());
 app.use(express.json());
 
-const client = new MongoClient(process.env.MONGO_URI);
+if (!MONGO_URI) {
+  console.error("Missing MONGO_URI. Create backend/.env or copy backend/.env.example first.");
+  process.exit(1);
+}
+
+const client = new MongoClient(MONGO_URI);
 
 async function connectDB() {
   try {
@@ -28,10 +35,9 @@ async function connectDB() {
 
     for (const demoUser of demoUsers) {
       const existingUser = await usersCollection.findOne({ email: demoUser.email });
+      const hashedPassword = await bcrypt.hash(demoUser.password, 10);
 
       if (!existingUser) {
-        const hashedPassword = await bcrypt.hash(demoUser.password, 10);
-
         await usersCollection.insertOne({
           email: demoUser.email,
           password: hashedPassword,
@@ -39,6 +45,27 @@ async function connectDB() {
           courses: [],
           createdAt: new Date(),
         });
+        continue;
+      }
+
+
+      const needsPasswordRepair =
+        !existingUser.password || typeof existingUser.password !== "string" || !existingUser.password.startsWith("$2");
+
+      if (needsPasswordRepair || existingUser.role !== demoUser.role) {
+        await usersCollection.updateOne(
+          { _id: existingUser._id },
+          {
+            $set: {
+              password: hashedPassword,
+              role: demoUser.role,
+            },
+            $setOnInsert: {
+              courses: [],
+              createdAt: new Date(),
+            },
+          }
+        );
       }
     }
 
@@ -47,16 +74,16 @@ async function connectDB() {
 
     console.log("MongoDB connected");
 
+    app.listen(PORT, "127.0.0.1", () => {
+      console.log(`Server running on http://127.0.0.1:${PORT}`);
+    });
+
   } catch (err) {
     console.error(err);
+    process.exit(1);
   }
 }
 
-connectDB();
-
 // Register routes
 app.use("/api/users", usersRoute);
-
-app.listen(process.env.PORT, "127.0.0.1", () => {
-  console.log(`Server running on http://127.0.0.1:${process.env.PORT}`);
-});
+connectDB();

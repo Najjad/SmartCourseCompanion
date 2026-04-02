@@ -1,10 +1,6 @@
-# Getting Started with Create React App
-
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-# Smart Course Companion  
-SOEN 287 – Web Programming  
-Winter 2026  
+# Smart Course Companion
+SOEN 287 - Web Programming
+Winter 2026
 
 ## Overview
 
@@ -21,10 +17,10 @@ It also provides basic tools for instructors/admins to manage course structures.
 
 ---
 
-## Features (Deliverable #1)
+## Features
 
 ### Student
-- Register and login (frontend simulation)
+- Register and login
 - Add, edit, delete courses
 - View and manage assessments
 - Enter marks (earned/total)
@@ -37,7 +33,7 @@ It also provides basic tools for instructors/admins to manage course structures.
 - Create and manage courses
 - Define assessment categories and weightings
 - Enable/disable courses
-- View basic usage summaries (UI simulation)
+- View basic usage summaries
 
 ---
 
@@ -52,11 +48,14 @@ It also provides basic tools for instructors/admins to manage course structures.
 
 ## Installation & Running Locally
 
-### 1. Clone the project
+### 1. Clone or download the project
 ```bash
 git clone <repository-url>
 cd smart-course-companion
 ```
+
+If you downloaded a zip, open the extracted project folder in Terminal instead.
+
 ### 2. Install Dependencies
 Make sure Node.js is installed:
 
@@ -65,7 +64,7 @@ node -v
 npm -v
 ```
 
-Then install the project dependencies:
+Then install the frontend dependencies:
 ```bash
 npm install
 ```
@@ -87,15 +86,14 @@ cp backend/.env.example backend/.env
 
 The file should contain:
 ```env
-MONGO_URI=mongodb+srv://SCC:MmyImjE1jgo9QjUm@yetivault.gwjaghj.mongodb.net/?appName=yetivault
+MONGO_URI=mongodb+srv://soenteam:TD4A5bCQwp5Ngpnj@cluster0.q7pcywb.mongodb.net/?appName=Cluster0
 PORT=5000
 ```
 
 ### 4. Run the backend
 Open a terminal and run:
 ```bash
-cd backend
-node server.js
+npm run server
 ```
 
 You should see:
@@ -107,3 +105,15 @@ Open another terminal and run:
 ```bash
 npm start
 ```
+
+### 6. Demo login
+Use:
+
+- `student@test.com / 1234`
+- `admin@test.com / 1234`
+
+## Backend Notes
+
+- The backend lives in `backend/server.js`
+- API routes live in `backend/routes/users.js`
+- Every teammate should use the same `backend/.env` values before testing PRs

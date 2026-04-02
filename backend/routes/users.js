@@ -239,6 +239,10 @@ router.post("/login", async (req, res) => {
     const db = req.app.locals.db;
     const { email, password } = req.body;
 
+    if (!db) {
+      return res.status(503).json({ error: "Database not ready" });
+    }
+
     if (!email || !password) {
       return res.status(400).json({ error: "Missing email or password" });
     }
@@ -248,7 +252,25 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (typeof user.password !== "string" || !user.password) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const isHashedPassword =
+      typeof user.password === "string" && user.password.startsWith("$2");
+    let passwordMatch = false;
+
+    if (isHashedPassword) {
+      try {
+        passwordMatch = await bcrypt.compare(password, user.password);
+      } catch (error) {
+        console.error("bcrypt compare failed:", error);
+        passwordMatch = false;
+      }
+    } else {
+      passwordMatch = password === user.password;
+    }
+
     if (!passwordMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
