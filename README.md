@@ -86,7 +86,7 @@ cp backend/.env.example backend/.env
 
 The file should contain:
 ```env
-MONGO_URI=mongodb+srv://soenteam:TD4A5bCQwp5Ngpnj@cluster0.q7pcywb.mongodb.net/?appName=Cluster0
+MONGO_URI=your_mongodb_connection_string_here
 PORT=5000
 ```
 
