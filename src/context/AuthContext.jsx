@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { updateUserPassword as updateUserPasswordAPI, deleteUserAccount as deleteUserAccountAPI } from "../api/users";
 
 export const AuthContext = createContext();
 
@@ -17,6 +18,30 @@ export function AuthProvider({ children }) {
       localStorage.removeItem("user");
     }
   }, [user]);
+
+  // Add new functions
+  const updateUserPassword = async (currentPassword, newPassword) => {
+    if (!user?.userId) throw new Error("No user logged in");
+
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(user.userId)}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to update password");
+
+    return data;
+  };
+
+  const deleteUserAccount = async () => {
+    if (!user?.userId) throw new Error("No user logged in");
+
+    await deleteUserAccount(user.userId);
+    setUser(null); // logout after deletion
+  };
 
   const login = async (email, password) => {
     try {
@@ -110,7 +135,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateUserEmail }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUserEmail, updateUserPassword, deleteUserAccount }}>
       {children}
     </AuthContext.Provider>
   );

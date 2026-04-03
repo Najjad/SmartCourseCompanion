@@ -559,4 +559,51 @@ router.delete("/:userId/courses/:courseId", async (req, res) => {
   }
 });
 
+// Update password by user ID
+router.put("/:id/password", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const userId = req.params.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current and new passwords are required" });
+    }
+
+    // Find the user by _id
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(400).json({ error: "Current password is incorrect" });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedPassword } }
+    );
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Delete user account by user ID
+router.delete("/:id", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const userId = req.params.id;
+
+    const result = await db.collection("users").deleteOne({ _id: new ObjectId(userId) });
+    if (result.deletedCount === 0) return res.status(404).json({ error: "User not found" });
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = router;

@@ -80,3 +80,16 @@ export function fetchUserById(userId) {
   );
 
 }
+
+export function updateUserPassword(userId, currentPassword, newPassword) {
+  return request(`/${encodeURIComponent(userId)}/password`, {
+    method: "PUT",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+export function deleteUserAccount(userId) {
+  return request(`/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+  });
+}
