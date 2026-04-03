@@ -23,6 +23,9 @@ function Sidebar() {
 
         <Link to="/assessments">Assessments</Link>
         <br />
+
+        <Link to="/account">My Account</Link>
+        <br />
       </>
     )}
 
@@ -40,6 +43,9 @@ function Sidebar() {
         <br />
 
         <Link to="/admin/stats">Usage Stats</Link>
+        <br />
+
+        <Link to="/account">My Account</Link>
         <br />
       </>
     )}

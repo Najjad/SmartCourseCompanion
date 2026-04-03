@@ -22,7 +22,6 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/account" element={<Account />} />
           <Route element={<Layout />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/create-course" element={<CreateCourse />} />
@@ -32,6 +31,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:courseId" element={<CourseDetailPage />} />
+            <Route path="/account" element={<Account />} />
           </Route>
         </Routes>
       </BrowserRouter>
