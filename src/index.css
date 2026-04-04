@@ -771,3 +771,69 @@ body {
     width: 90%;
   }
 }
+
+/* =========================
+   Account Page Input Styling
+   ========================= */
+
+.account-page input {
+  width: 100%;
+  padding: 10px 12px;
+
+  font-size: 14px;
+  font-family: inherit;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background-color: #ffffff;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  outline: none;
+}
+
+/* Focus state */
+.account-page input:focus {
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Labels */
+.account-page .form-label {
+  display: block;
+  margin-bottom: 6px;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  color: #374151;
+}
+
+/* Spacing between inputs */
+.account-page .form-group {
+  margin-bottom: 16px;
+}
+
+/* Danger button styling (if not already defined) */
+.account-page .btn-danger {
+  background-color: #dc2626;
+  color: white;
+
+  border: none;
+  padding: 10px 16px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.account-page .btn-danger:hover {
+  background-color: #b91c1c;
+}

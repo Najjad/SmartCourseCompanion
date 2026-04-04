@@ -74,40 +74,118 @@ export default function Account() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>My Account</h2>
-      <p>View and manage your account details below.</p>
-
-      <p><strong>Role:</strong> {currentUser.role}</p>
-
-      <form onSubmit={handleUpdateEmail} style={{ marginBottom: "20px" }}>
-        <label>
-          <strong>Email:</strong>
-          <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required style={{ marginLeft: "10px" }} />
-        </label>
-        <button type="submit" style={{ marginLeft: "10px" }}>Update Email</button>
-      </form>
-
-      <form onSubmit={handleUpdatePassword} style={{ marginBottom: "20px" }}>
-        <label>
-          <strong>Current Password:</strong>
-          <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required style={{ marginLeft: "10px" }} />
-        </label>
-        <br />
-        <label>
-          <strong>New Password:</strong>
-          <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required style={{ marginLeft: "10px" }} />
-        </label>
-        <br />
-        <button type="submit" style={{ marginTop: "10px" }}>Update Password</button>
-      </form>
-
-      <button onClick={handleDeleteAccount} style={{ color: "white", backgroundColor: "red", padding: "8px 16px", border: "none", cursor: "pointer" }}>
-        Delete Account
-      </button>
-
-      {success && <p style={{ color: "green", marginTop: "10px" }}>{success}</p>}
-      {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+  <div className="student-page account-page">
+    <div className="page-header">
+      <div>
+        <p className="eyebrow">Account Settings</p>
+        <h1 className="page-title">Manage Your Account</h1>
+        <p className="page-subtitle">
+          Update your email, change your password, or delete your account.
+        </p>
+      </div>
     </div>
-  );
+
+    {success ? (
+      <div className="alert-box success-alert">{success}</div>
+    ) : null}
+
+    {error ? (
+      <div className="alert-box error-alert">{error}</div>
+    ) : null}
+
+    <section className="dashboard-two-column">
+
+      {/* CHANGE EMAIL CARD */}
+      <div className="card">
+        <div className="section-heading">
+          <div>
+            <h2>Change Email</h2>
+            <p>Update the email associated with your account.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleUpdateEmail}>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-input"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn-primary"
+          >
+            Update Email
+          </button>
+        </form>
+      </div>
+
+      {/* CHANGE PASSWORD CARD */}
+      <div className="card">
+        <div className="section-heading">
+          <div>
+            <h2>Change Password</h2>
+            <p>Use a strong password you haven't used before.</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleUpdatePassword}>
+          <div className="form-group">
+            <label className="form-label">Current Password</label>
+            <input
+              type="password"
+              className="form-input"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">New Password</label>
+            <input
+              type="password"
+              className="form-input"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn-primary"
+          >
+            Update Password
+          </button>
+        </form>
+      </div>
+
+      {/* DELETE ACCOUNT CARD */}
+      <div className="card">
+        <div className="section-heading">
+          <div>
+            <h2>Delete Account</h2>
+            <p className="summary-helper">
+              This action cannot be undone.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleDeleteAccount}
+          className="btn-danger"
+        >
+          Delete Account
+        </button>
+      </div>
+
+    </section>
+  </div>
+);
 }
