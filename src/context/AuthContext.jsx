@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { updateUserPassword as updateUserPasswordAPI, deleteUserAccount as deleteUserAccountAPI } from "../api/users";
 
 export const AuthContext = createContext();
 
@@ -18,12 +19,36 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
+  // Add new functions
+  const updateUserPassword = async (currentPassword, newPassword) => {
+    if (!user?.userId) throw new Error("No user logged in");
+
+    const res = await fetch(`${API_BASE}/${encodeURIComponent(user.userId)}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Failed to update password");
+
+    return data;
+  };
+
+  const deleteUserAccount = async () => {
+    if (!user?.userId) throw new Error("No user logged in");
+
+    await deleteUserAccount(user.userId);
+    setUser(null); // logout after deletion
+  };
+
   const login = async (email, password) => {
     try {
       const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -32,10 +57,14 @@ export function AuthProvider({ children }) {
         throw new Error(data.error || "Login failed");
       }
 
-      const nextUser = { email: data.email, role: data.role, userId: String(data.userId) };
+      const nextUser = {
+        email: data.email,
+        role: data.role,
+        userId: String(data.userId),
+      };
+
       setUser(nextUser);
       return nextUser;
-
     } catch (err) {
       console.error(err);
       throw err;
@@ -47,7 +76,7 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       });
 
       const data = await res.json();
@@ -64,7 +93,37 @@ export function AuthProvider({ children }) {
 
       setUser(nextUser);
       return nextUser;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
 
+  const updateUserEmail = async (newEmail) => {
+    if (!user?.email) throw new Error("No user logged in");
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/updateByEmail/${encodeURIComponent(user.email)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: newEmail }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update email");
+      }
+
+      // update local state and localStorage
+      const updatedUser = { ...user, email: data.email };
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      return updatedUser;
     } catch (err) {
       console.error(err);
       throw err;
@@ -76,7 +135,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUserEmail, updateUserPassword, deleteUserAccount }}>
       {children}
     </AuthContext.Provider>
   );

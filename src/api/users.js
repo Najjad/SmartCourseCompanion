@@ -81,3 +81,27 @@ export function createUserCourseFromTemplate(userId, templateId, payload) {
     }
   );
 }
+
+export function updateUserByEmail(email, updatedData) {
+  return request(`/updateByEmail/${encodeURIComponent(email)}`, {
+    method: "PUT",
+    body: JSON.stringify(updatedData),
+  });
+}
+
+export function fetchUserById(userId) {
+  return request(`/${encodeURIComponent(userId)}`);
+}
+
+export function updateUserPassword(userId, currentPassword, newPassword) {
+  return request(`/${encodeURIComponent(userId)}/password`, {
+    method: "PUT",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+export function deleteUserAccount(userId) {
+  return request(`/${encodeURIComponent(userId)}`, {
+    method: "DELETE",
+  });
+}

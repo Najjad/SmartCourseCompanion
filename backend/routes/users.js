@@ -202,6 +202,38 @@ function parseAndValidateCourseInput({ code, name, instructor, term }) {
   };
 }
 
+function parseAndValidateCategories(categories) {
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return { error: "At least one assessment category is required" };
+  }
+
+  const normalizedCategories = categories.map((category) => ({
+    name: (category.name || "").trim(),
+    weight: Number(category.weight),
+  }));
+
+  for (const category of normalizedCategories) {
+    if (!category.name) {
+      return { error: "Each category must have a name" };
+    }
+
+    if (!Number.isFinite(category.weight) || category.weight <= 0) {
+      return { error: "Each category weight must be a number greater than 0" };
+    }
+  }
+
+  const totalWeight = normalizedCategories.reduce(
+    (sum, category) => sum + category.weight,
+    0
+  );
+
+  if (totalWeight !== 100) {
+    return { error: "Category weights must add up to 100" };
+  }
+
+  return { value: normalizedCategories };
+}
+
 function summarizeCourse(course) {
   const assessments = (course.assessments || []).map(normalizeAssessmentStatus);
   const gradedAssessments = assessments.filter(
@@ -300,6 +332,13 @@ router.post("/register", async (req, res) => {
 
     const result = await db.collection("users").insertOne(newUser);
 
+    res.cookie("userEmail", email, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24
+    });
+
     res.status(201).json({
       message: "User created",
       userId: result.insertedId,
@@ -307,8 +346,8 @@ router.post("/register", async (req, res) => {
       role: newUser.role,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("REGISTER ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -338,8 +377,8 @@ router.post("/login", async (req, res) => {
       role: user.role,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("LOGIN ERROR:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -359,6 +398,42 @@ router.get("/getByEmail/:email", async (req, res) => {
 
     const { password, ...userData } = user;
     res.json(userData);
+  } catch (err) {
+    console.error("GET EMAIL ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put("/updateByEmail/:email", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const originalEmail = req.params.email;
+
+    if (!originalEmail) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const updatedData = req.body;
+    delete updatedData.password;
+
+    const result = await db.collection("users").updateOne(
+      { email: originalEmail },
+      { $set: updatedData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const newEmail = updatedData.email || originalEmail;
+    const updatedUser = await db.collection("users").findOne({ email: newEmail });
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "Updated user not found" });
+    }
+
+    const { password, ...safeUser } = updatedUser;
+    res.json(safeUser);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
@@ -435,7 +510,14 @@ router.post("/:userId/courses", async (req, res) => {
     if (validation.error) {
       return res.status(400).json({ error: validation.error });
     }
+
+    const categoriesValidation = parseAndValidateCategories(req.body.categories);
+    if (categoriesValidation.error) {
+      return res.status(400).json({ error: categoriesValidation.error });
+    }
+
     const { code, name, instructor, term } = validation.value;
+    const categories = categoriesValidation.value;
 
     const existingUser = await db.collection("users").findOne({ _id: objectId });
     if (!existingUser) {
@@ -456,6 +538,7 @@ router.post("/:userId/courses", async (req, res) => {
       name,
       instructor,
       term,
+      categories,
       description: `${name} is now part of your student dashboard. Use this page to track progress, view assessment deadlines, and monitor your current standing.`,
       room: "TBA",
       schedule: "TBA",
@@ -559,6 +642,122 @@ router.delete("/:userId/courses/:courseId", async (req, res) => {
     );
 
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.put("/:id/password", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const userId = req.params.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current and new passwords are required" });
+    }
+
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(400).json({ error: "Current password is incorrect" });
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { password: hashedPassword } }
+    );
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const userId = req.params.id;
+
+    const result = await db.collection("users").deleteOne({ _id: new ObjectId(userId) });
+    if (result.deletedCount === 0) return res.status(404).json({ error: "User not found" });
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/:userId/courses/:courseId/assessments", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const user = await findUserById(db, req.params.userId);
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const course = user.courses.find((c) => c.id === req.params.courseId);
+    if (!course) return res.status(404).json({ error: "Course not found" });
+
+    const { title, category, weight, dueDate, totalMarks } = req.body;
+
+    const newAssessment = {
+      id: new ObjectId().toString(),
+      title,
+      category,
+      weight,
+      dueDate,
+      totalMarks,
+      earnedMarks: null,
+      status: "pending"
+    };
+
+    course.assessments.push(newAssessment);
+
+    await db.collection("users").updateOne(
+      { _id: user._id },
+      { $set: { courses: user.courses } }
+    );
+
+    res.json(newAssessment);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.put("/:userId/courses/:courseId/assessments/:assessmentId", async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const user = await findUserById(db, req.params.userId);
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const course = user.courses.find((c) => c.id === req.params.courseId);
+    if (!course) return res.status(404).json({ error: "Course not found" });
+
+    const assessment = course.assessments.find((a) => a.id === req.params.assessmentId);
+    if (!assessment) return res.status(404).json({ error: "Assessment not found" });
+
+    const { earnedMarks, status } = req.body;
+
+    if (earnedMarks !== undefined) {
+      assessment.earnedMarks = Number(earnedMarks);
+    }
+
+    if (status) {
+      assessment.status = status;
+    }
+
+    await db.collection("users").updateOne(
+      { _id: user._id },
+      { $set: { courses: user.courses } }
+    );
+
+    res.json(assessment);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
