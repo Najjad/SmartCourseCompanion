@@ -167,15 +167,7 @@ function CoursesPage() {
           <h1 className="page-title">My Courses</h1>
           <p className="page-subtitle">Search, add, edit, and remove the courses saved on your account.</p>
         </div>
-        <button
-          onClick={() => {
-            setSelectedCourse(null);
-            setShowCourseModal(true);
-          }}
-          className="btn-primary"
-        >
-          Add Course
-        </button>
+       
         <button
           onClick={() => {
             setError("");
