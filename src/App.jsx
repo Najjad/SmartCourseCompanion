@@ -27,7 +27,7 @@ function App() {
             <Route path="/admin/create-course" element={<CreateCourse />} />
             <Route path="/admin/templates" element={<Templates />} />
             <Route path="/admin/stats" element={<UsageStats />} />
-            <Route path="/assessments" element={<AssessmentsPage />} />
+            <Route path="/assessments/:courseId" element={<AssessmentsPage />} /> 
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:courseId" element={<CourseDetailPage />} />

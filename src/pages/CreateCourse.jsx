@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import CategoryBuilder from "../components/CategoryBuilder";
+import { AuthContext } from "../context/AuthContext";
+import { createUserCourse } from "../api/users";
 
 function CreateCourse() {
+  const { user } = useContext(AuthContext);
   const [courseName, setCourseName] = useState("");
   const [courseCode, setCourseCode] = useState("");
   const [term, setTerm] = useState("");
   const [categories, setCategories] = useState([]);
 
-  const saveCourse = () => {
+  const saveCourse = async () => {
     const totalWeight = categories.reduce(
       (sum, cat) => sum + cat.weight,
       0
@@ -18,7 +21,29 @@ function CreateCourse() {
       return;
     }
 
-    alert("Course Created (Frontend Only)");
+    if (!user?.userId) {
+      alert("You must be logged in");
+      return;
+    }
+
+    try {
+      await createUserCourse(user.userId, {
+        code: courseCode,
+        name: courseName,
+        instructor: "TBA",
+        term,
+        categories,
+      });
+
+      alert("Course created successfully");
+
+      setCourseCode("");
+      setCourseName("");
+      setTerm("");
+      setCategories([]);
+    } catch (err) {
+      alert(err.message || "Failed to create course");
+    }
   };
 
   return (

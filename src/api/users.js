@@ -109,3 +109,23 @@ export function deleteUserAccount(userId) {
     method: "DELETE",
   });
 }
+
+export function createAssessment(userId, courseId, payload) {
+  return request(`/${userId}/courses/${courseId}/assessments`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateAssessment(userId, courseId, assessmentId, payload) {
+  return request(`/${userId}/courses/${courseId}/assessments/${assessmentId}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteAssessment(userId, courseId, assessmentId) {
+  return request(`/${userId}/courses/${courseId}/assessments/${assessmentId}`, {
+    method: "DELETE",
+  });
+}

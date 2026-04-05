@@ -1,4 +1,12 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useContext } from "react";
+import { useParams } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import {
+  fetchUserCourse,
+  createAssessment,
+  updateAssessment,
+  deleteAssessment,
+} from "../api/users";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -11,44 +19,26 @@ import {
 } from "chart.js";
 import { Line, Doughnut } from "react-chartjs-2";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+
 
 export default function AssessmentsPage() {
+  const { user } = useContext(AuthContext);
+  const { courseId } = useParams();
 
-  const [assessments, setAssessments] = useState([
-    {
-      id: uid(),
-      name: "Assignment 1",
-      category: "assignment",
-      weight: 10,
-      dueDate: "2026-02-20",
-      totalMarks: 100,
-      earnedMarks: 92,
-      status: "completed",
-    },
-    {
-      id: uid(),
-      name: "Quiz 1",
-      category: "quiz",
-      weight: 5,
-      dueDate: "2026-02-10",
-      totalMarks: 20,
-      earnedMarks: 16,
-      status: "completed",
-    },
-    {
-      id: uid(),
-      name: "Midterm",
-      category: "exam",
-      weight: 30,
-      dueDate: "2026-03-05",
-      totalMarks: 100,
-      earnedMarks: "",
-      status: "pending",
-    },
-  ]);
+  const [assessments, setAssessments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  
 
   // Add Assessment form state
   const [form, setForm] = useState({
@@ -61,29 +51,55 @@ export default function AssessmentsPage() {
 
   // Marks edit per assessment (so you can “Enter Marks”)
   const [edit, setEdit] = useState({}); // { [id]: { earnedMarks, totalMarks, status } }
+  async function loadAssessments() {
+    if (!user?.userId || !courseId) {
+      setIsLoading(false);
+      return;
+    }
 
+    try {
+      setIsLoading(true);
+      setError("");
+      const response = await fetchUserCourse(user.userId, courseId);
+      setAssessments(response.course?.assessments || []);
+    } catch (err) {
+      setError(err.message || "Failed to load assessments");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadAssessments();
+  }, [user?.userId, courseId]);
   // ----- Calculations -----
   const computed = useMemo(() => {
     const rows = assessments.map((a) => {
-      const earned = Number(a.earnedMarks);
-      const total = Number(a.totalMarks);
+  const normalized = {
+    ...a,
+    name: a.name || a.title || "Untitled",
+    earnedMarks: a.earnedMarks ?? "",
+  };
 
-      const hasMarks =
-        a.earnedMarks !== "" &&
-        a.totalMarks !== "" &&
-        Number.isFinite(earned) &&
-        Number.isFinite(total) &&
-        total > 0;
+  const earned = Number(normalized.earnedMarks);
+  const total = Number(normalized.totalMarks);
 
-      const grade = hasMarks ? (earned / total) * 100 : null; // assessment grade %
-      const weighted = hasMarks ? (grade / 100) * Number(a.weight || 0) : 0; // weighted contribution
+  const hasMarks =
+    normalized.earnedMarks !== "" &&
+    normalized.totalMarks !== "" &&
+    Number.isFinite(earned) &&
+    Number.isFinite(total) &&
+    total > 0;
 
-      return {
-        ...a,
-        grade,
-        weightedContribution: weighted,
-      };
-    });
+  const grade = hasMarks ? (earned / total) * 100 : null;
+  const weighted = hasMarks ? (grade / 100) * Number(normalized.weight || 0) : 0;
+
+  return {
+    ...normalized,
+    grade,
+    weightedContribution: weighted,
+  };
+});
 
     const graded = rows.filter((r) => r.grade !== null);
     const totalWeight = graded.reduce((sum, r) => sum + Number(r.weight || 0), 0);
@@ -139,7 +155,7 @@ export default function AssessmentsPage() {
   }, [computed.rows]);
 
   // ----- Handlers -----
-  function onAddAssessment(e) {
+    async function onAddAssessment(e) {
     e.preventDefault();
 
     const weightNum = Number(form.weight);
@@ -149,22 +165,31 @@ export default function AssessmentsPage() {
     if (!form.dueDate) return alert("Due date is required.");
     if (!Number.isFinite(weightNum) || weightNum <= 0) return alert("Weight must be > 0.");
     if (!Number.isFinite(totalMarksNum) || totalMarksNum <= 0) return alert("Total marks must be > 0.");
+    if (!user?.userId || !courseId) return alert("Missing user or course.");
 
-    setAssessments((prev) => [
-      ...prev,
-      {
-        id: uid(),
-        name: form.name.trim(),
+    try {
+      setError("");
+
+      await createAssessment(user.userId, courseId, {
+        title: form.name.trim(),
         category: form.category,
         weight: weightNum,
         dueDate: form.dueDate,
         totalMarks: totalMarksNum,
-        earnedMarks: "",
-        status: "pending",
-      },
-    ]);
+      });
 
-    setForm({ name: "", category: "assignment", weight: "", dueDate: "", totalMarks: "" });
+      setForm({
+        name: "",
+        category: "assignment",
+        weight: "",
+        dueDate: "",
+        totalMarks: "",
+      });
+
+      await loadAssessments();
+    } catch (err) {
+      setError(err.message || "Failed to add assessment");
+    }
   }
 
   function startEdit(a) {
@@ -178,7 +203,7 @@ export default function AssessmentsPage() {
     }));
   }
 
-  function saveEdit(id) {
+    async function saveEdit(id) {
     const e = edit[id];
     if (!e) return;
 
@@ -188,35 +213,46 @@ export default function AssessmentsPage() {
     if (earned !== "" && (!Number.isFinite(earned) || earned < 0)) return alert("Earned marks invalid.");
     if (total !== "" && (!Number.isFinite(total) || total <= 0)) return alert("Total marks invalid.");
     if (earned !== "" && total !== "" && earned > total) return alert("Earned cannot exceed total.");
+    if (!user?.userId || !courseId) return alert("Missing user or course.");
 
-    setAssessments((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? {
-              ...a,
-              earnedMarks: earned === "" ? "" : earned,
-              totalMarks: total === "" ? a.totalMarks : total,
-              status: e.status,
-            }
-          : a
-      )
-    );
+    try {
+      setError("");
 
-    setEdit((prev) => {
-      const copy = { ...prev };
-      delete copy[id];
-      return copy;
-    });
+      await updateAssessment(user.userId, courseId, id, {
+        earnedMarks: earned === "" ? null : earned,
+        status: e.status,
+      });
+
+      setEdit((prev) => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
+
+      await loadAssessments();
+    } catch (err) {
+      setError(err.message || "Failed to update assessment");
+    }
   }
 
-  function removeAssessment(id) {
+    async function removeAssessment(id) {
     if (!window.confirm("Delete this assessment?")) return;
-    setAssessments((prev) => prev.filter((a) => a.id !== id));
+    if (!user?.userId || !courseId) return alert("Missing user or course.");
+
+    try {
+      setError("");
+      await deleteAssessment(user.userId, courseId, id);
+      await loadAssessments();
+    } catch (err) {
+      setError(err.message || "Failed to delete assessment");
+    }
   }
 
   // ----- UI -----
   return (
     <div style={{ maxWidth: 1150, margin: "0 auto", padding: 20 }}>
+      {error ? <div style={{ marginBottom: 12, color: "red" }}>{error}</div> : null}
+      {isLoading ? <div style={{ marginBottom: 12 }}>Loading assessments...</div> : null}
       <h1 style={{ marginBottom: 6 }}>Assessments & Grade Tracking</h1>
       <p style={{ marginTop: 0, color: "#555" }}>
         Add assessments, enter marks, and view calculated grades, weighted contributions, and course average.
