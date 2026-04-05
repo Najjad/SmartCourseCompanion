@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Layout from "./layout/Layout";
 import { AuthProvider } from "./context/AuthContext";
 import AssessmentsPage from "./pages/AssessmentsPage";
+import AssessmentsSelectorPage from "./pages/AssessmentsSelectorPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import CreateCourse from "./pages/CreateCourse";
 import Templates from "./pages/Templates";
@@ -28,6 +29,12 @@ function App() {
             <Route path="/admin/templates" element={<Templates />} />
             <Route path="/admin/stats" element={<UsageStats />} />
             <Route path="/assessments/:courseId" element={<AssessmentsPage />} /> 
+            <Route path="/assessments" element={<AssessmentsSelectorPage />} />
+
+<Route
+  path="/assessments/:courseId"
+  element={<AssessmentsPage />}
+/>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:courseId" element={<CourseDetailPage />} />
