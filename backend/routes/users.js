@@ -544,6 +544,7 @@ router.post("/:userId/courses", async (req, res) => {
       schedule: "TBA",
       credit: 3,
       assessments: createStarterAssessments(code, name),
+      enabled:true,
     };
 
     await db.collection("users").updateOne(
@@ -559,7 +560,6 @@ router.post("/:userId/courses", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 router.put("/:userId/courses/:courseId", async (req, res) => {
   try {
     const db = req.app.locals.db;
@@ -586,10 +586,15 @@ router.put("/:userId/courses/:courseId", async (req, res) => {
       instructor: req.body.instructor ?? existingCourse.instructor,
       term: req.body.term ?? existingCourse.term,
     });
-
+   
     if (validation.error) {
       return res.status(400).json({ error: validation.error });
     }
+     const enabled =
+  req.body.enabled === undefined
+    ? existingCourse.enabled ?? true
+    : Boolean(req.body.enabled);
+    
 
     const { code, name, instructor, term } = validation.value;
     const duplicateCourse = (user.courses || []).find(
@@ -603,13 +608,15 @@ router.put("/:userId/courses/:courseId", async (req, res) => {
     }
 
     const updatedCourse = {
-      ...existingCourse,
-      code,
-      name,
-      instructor,
-      term,
-    };
+  ...existingCourse,
+  code,
+  name,
+  instructor,
+  term,
+  enabled,
+};
 
+  
     const nextCourses = [...user.courses];
     nextCourses[courseIndex] = updatedCourse;
 
@@ -713,6 +720,7 @@ router.post("/:userId/courses/:courseId/assessments", async (req, res) => {
       totalMarks,
       earnedMarks: null,
       status: "pending"
+     
     };
 
     course.assessments.push(newAssessment);
@@ -868,6 +876,7 @@ router.post("/:userId/courses/from-template/:templateId", async (req, res) => {
   name,
   instructor,
   term,
+  enabled:true,
   categories: template.categories,
   description:
     template.description ||

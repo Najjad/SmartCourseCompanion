@@ -1,19 +1,42 @@
-import { useState } from "react";
-
-const initialCourses = [
-  { id: 1, code: "SOEN287", name: "Web Programming", enabled: true },
-  { id: 2, code: "COMP249", name: "Object Oriented Programming", enabled: true },
-  { id: 3, code: "ENGR202", name: "Professional Practice", enabled: false },
-];
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { fetchUserCourses, updateUserCourse } from "../api/users";
 
 function AdminDashboard() {
-  const [courses, setCourses] = useState(initialCourses);
+  const { user } = useContext(AuthContext);
+  const [courses, setCourses] = useState([]);
 
-  const toggleCourse = (id) => {
-    const updated = courses.map((course) =>
-      course.id === id ? { ...course, enabled: !course.enabled } : course
-    );
-    setCourses(updated);
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        if (!user?.userId) return;
+
+        const res = await fetchUserCourses(user.userId);
+        setCourses(res.courses || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadCourses();
+  }, [user]);
+
+  const toggleCourse = async (courseId, currentEnabled) => {
+    try {
+      await updateUserCourse(user.userId, courseId, {
+        enabled: !currentEnabled,
+      });
+
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.id === courseId
+            ? { ...course, enabled: !currentEnabled }
+            : course
+        )
+      );
+    } catch (err) {
+      alert("Failed to update course");
+    }
   };
 
   return (
@@ -32,7 +55,7 @@ function AdminDashboard() {
         >
           <h3>{course.code} - {course.name}</h3>
           <p>Status: {course.enabled ? "Enabled" : "Disabled"}</p>
-          <button onClick={() => toggleCourse(course.id)}>
+          <button onClick={() => toggleCourse(course.id, course.enabled)}>
             {course.enabled ? "Disable" : "Enable"}
           </button>
         </div>
